@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import isNil from "lodash/isNil";
 import isEmpty from "lodash/isEmpty";
 import { useState } from "react";
 import { useEffectOnce } from "react-use";
@@ -52,6 +53,30 @@ function App() {
       });
   };
 
+  /**
+   * Handles the change event when a server is selected.
+   *
+   * @param {config.LoginServer["Name"]} serverName - The name of the selected server
+   * @returns {void}
+   *
+   * @remarks
+   * This function finds the server object that matches the provided server name
+   * and updates the selected server state. If no matching server is found,
+   * a warning is logged to the console and the function returns early.
+   */
+  const handleServerChange = (serverName: config.LoginServer["Name"]) => {
+    const nextSelectedServer = servers.find(
+      (server) => server.Name === serverName
+    );
+
+    if (isNil(nextSelectedServer)) {
+      console.warn(`Server with name "${serverName}" not found.`);
+      return;
+    }
+
+    setSelectedServer(nextSelectedServer);
+  };
+
   useEffectOnce(() => {
     (async () => {
       try {
@@ -74,7 +99,11 @@ function App() {
         {/* Left - server selector / capture button */}
         <div className="flex flex-col gap-7 justify-end">
           {/* 1. server select */}
-          <ServerSelect value={selectedServer} options={servers} />
+          <ServerSelect
+            value={selectedServer}
+            options={servers}
+            onChange={handleServerChange}
+          />
           {/* 2. start capture */}
           <StartCaptureButton
             className="rounded-[8px]"
