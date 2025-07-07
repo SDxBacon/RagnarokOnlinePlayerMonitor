@@ -34,7 +34,7 @@ type CharacterServerInfo = ragnarok.CharacterServerInfo
 
 var loginServers []LoginServer = []LoginServer{
 	{Name: "Taiwan", IP: "219.84.200.54", Port: 6900, Pattern: []byte{0xc0, 0xa8}},
-	{Name: "Korea", IP: "112.175.128.137", Port: 6900, Pattern: []byte{0xc0, 0xa8}},
+	// {Name: "Korea", IP: "112.175.128.137", Port: 6900, Pattern: []byte{0xc0, 0xa8}},
 }
 
 // NewApp creates a new App application struct
