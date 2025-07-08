@@ -10,10 +10,10 @@
         <pattern>0xc0a8</pattern>
       </server>
       <server>
-        <name>Taiwan：樂園</name>
+        <name>Taiwan - Zero</name>
         <IP>35.229.252.108</IP>
         <port>6900</port>
-        <pattern>0x600b</pattern>
+        <pattern>0x0a8c</pattern>
       </server>
   </servers>
 </configuration>
