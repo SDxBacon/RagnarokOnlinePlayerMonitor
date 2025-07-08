@@ -100,22 +100,25 @@ func decodeServerData(data []byte) *CharacterServerInfo {
 //   - []byte: Combined segments if the data could be evenly split based on pattern occurrences
 //   - nil: If the data length is not evenly divisible by the number of pattern occurrences
 func ParsePayloadToCharacterServerInfo(data []byte, pattern []byte) []CharacterServerInfo {
+	fmt.Printf("[Ragnarok] processing data: %v\n", data)
 
 	// find all occurrences of the pattern in the data
 	occurrences := findAllPatterns(data, pattern)
 
 	// debug information
-	fmt.Printf("find %d occurrences of the pattern\n", len(occurrences))
-	fmt.Println("occurrences:", occurrences)
+	fmt.Printf("[Ragnarok] find %d occurrences of the pattern\n", len(occurrences))
+	fmt.Println("[Ragnarok] occurrences:", occurrences)
 
 	// if no occurrences found
 	if len(occurrences) == 0 {
+		fmt.Println("[Ragnarok] No occurrences found for the pattern in the data.")
 		return nil
 	}
 
 	// assuming the character server list is evenly distributed across the data, but may not start at the beginning.
 	var dataCountFromOccurrence = len(data[occurrences[0]:]) // the number of bytes from the first occurrence to the end of the data
-	if dataCountFromOccurrence <= 0 || len(data)%dataCountFromOccurrence != 0 {
+	if dataCountFromOccurrence <= 0 || dataCountFromOccurrence%len(occurrences) != 0 {
+		fmt.Println("[Ragnarok] The data length is not evenly divisible by the number of occurrences.")
 		return nil
 	}
 
