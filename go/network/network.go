@@ -68,7 +68,7 @@ func (pcs *PacketCaptureService) StartCaptureAllInterfaces() {
 
 	// build filter for packet capture
 	filter := fmt.Sprintf("tcp and net %s and port %d", pcs.ip, pcs.port)
-	fmt.Printf("[Network.StartCaptureAllInterfaces] build filter success: %s", filter)
+	fmt.Printf("[Network.StartCaptureAllInterfaces] build filter success: %s\n", filter)
 
 	// then, iterate through all interfaces and capture packets
 	for _, device := range devices {
