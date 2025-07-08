@@ -5,7 +5,9 @@ import { useState } from "react";
 import { useEffectOnce } from "react-use";
 // import local components
 import ServerSelect from "@/components/ServerSelect";
-import CharacterServerTable from "@/components/CharacterServerTable";
+import CharacterServerTable, {
+  TablePlayersMode,
+} from "@/components/CharacterServerTable";
 import StartCaptureButton from "@/components/StartCaptureButton";
 import Footer from "@/components/Footer";
 // import local hooks
@@ -24,6 +26,9 @@ function App() {
   const [isCapture, setIsCapture] = useState(false);
   const [data, setData] = useState<ragnarok.CharacterServerInfo[]>([]);
   const [updatedTime, setUpdatedTime] = useState(Date.now());
+  const [tablePlayersMode, setTablePlayersMode] = useState<TablePlayersMode>(
+    TablePlayersMode.Number
+  );
 
   const [isUpdateAvailable, latestVersion] = useCheckUpdateOnce();
 
@@ -32,6 +37,12 @@ function App() {
   const handleStartCaptureButtonClick = () => {
     if (selectedServer === null) return;
 
+    setData([]); // Clear previous data
+    setTablePlayersMode(
+      selectedServer.IsNumberResponse
+        ? TablePlayersMode.Number
+        : TablePlayersMode.Status
+    );
     setIsCapture(true);
 
     StartCapture(selectedServer.Name)
@@ -112,7 +123,7 @@ function App() {
           />
         </div>
         {/* Right - server table */}
-        <CharacterServerTable data={data} />
+        <CharacterServerTable data={data} playersMode={tablePlayersMode} />
 
         {/* Update time */}
         {showUpdateTimeText && (
