@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -171,38 +170,59 @@ func (a *App) StopCapture() bool {
 	return true
 }
 
-func (a *App) StartCapture(targetServer string) []CharacterServerInfo {
-	runtime.LogInfof(a.ctx, "[App.StartCapture] entering with targetServer: %s ...", targetServer)
+// StartCapture initiates a packet capture session targeting the specified Ragnarok Online server.
+// It first checks if a capture session is already running and stops it if necessary. Then, it constructs
+// a network filter based on the provided targetServer name, matching it against the known loginServers.
+// If a matching server is found, it starts capturing packets on all interfaces using the constructed filter.
+// The function listens for packets on the capture channel, and upon receiving a packet that matches the
+// expected pattern, it parses the payload into a list of CharacterServerInfo objects, stops the capture,
+// and returns the list. If no matching server is found or the context is done, it returns nil.
+//
+// Parameters:
+//   - targetServer: The name of the server to capture packets from.
+//
+// Returns:
+//   - []CharacterServerInfo: A slice containing parsed character server information, or nil if no data is captured.
+func (a *App) StartCapture(targetServerName string) []CharacterServerInfo {
+	runtime.LogInfof(a.ctx, "[App.StartCapture] entering with targetServer: %s ...", targetServerName)
 
 	if a.isCapturing || a.packetCaptureService != nil {
 		runtime.LogWarningf(a.ctx, "[App.StartCapture] Already capturing, stop the previous capture.")
 
-		prevPacketCaptureService := a.packetCaptureService
-		prevPacketCaptureService.StopCapture() // stop the previous capture
+		// stop the running packet capture service if it exists
+		a.packetCaptureService.StopCapture()
 
 		// reset isCapturing flag and clean up packetCaptureService reference
 		a.isCapturing = false
 		a.packetCaptureService = nil
 	}
 
-	// construct the net filter for packet capture service by targetServer
-	var filter string
+	// find the target server in loginServers based on targetServerName
+	var targetServer *LoginServer
 	for _, server := range loginServers {
-		if server.Name == targetServer {
-			filter = fmt.Sprintf("tcp and net %s and port %d", server.IP, server.Port)
-			runtime.LogInfof(a.ctx, "[App.StartCapture] build filter success: %s", filter)
+		if server.Name == targetServerName {
+			targetServer = &server
+			runtime.LogInfof(a.ctx, "[App.StartCapture] confirm target server: %s", targetServer.Name)
 			break
 		}
 	}
-	// if filter is empty, it means no matching server found
-	if filter == "" {
-		runtime.LogWarningf(a.ctx, "[App.StartCapture] No matching server found for targetServer: %s", targetServer)
+
+	// if targetServer is nil, it means no matching server found
+	if targetServer == nil {
+		// TODO: add error handling, show a warning dialog to user
+		runtime.LogWarningf(a.ctx, "[App.StartCapture] No matching server found for server name: %s", targetServerName)
 		return nil
 	}
 
-	packetCaptureService := network.NewPacketCaptureService(filter)
+	// construct the net filter for packet capture service by targetServer
+	// filter := fmt.Sprintf("tcp and net %s and port %d", targetServer.IP, targetServer.Port)
+	// runtime.LogInfof(a.ctx, "[App.StartCapture] build filter success: %s", filter)
+	pattern := targetServer.Pattern
+
+	// create a new packet capture service with the target server's IP and port
+	packetCaptureService := network.NewPacketCaptureService(targetServer.IP, targetServer.Port)
 	ctx := packetCaptureService.GetContext()
-	channel := packetCaptureService.GetPacketChannel()
+	channel := packetCaptureService.GetConnectionCloseNotifyChannel()
 
 	// memorize the packetCaptureService and turn on isCapturing flag
 	a.packetCaptureService = packetCaptureService
@@ -213,22 +233,23 @@ func (a *App) StartCapture(targetServer string) []CharacterServerInfo {
 
 	for {
 		select {
-		case payload := <-channel:
-			// receive packet from channel
-			pattern := loginServers[0].Pattern
-			// check if the payload is started with `pattern`
-			if !bytes.Equal(payload[:2], pattern) {
-				continue
+		case connection := <-channel:
+			// handle the connection close notification
+
+			sortedIncomingData := connection.GetIncomingDataSortedByLength()
+
+			for _, data := range sortedIncomingData {
+				charServerInfoList := ragnarok.ParsePayloadToCharacterServerInfo(data, pattern)
+				runtime.LogInfof(a.ctx, "[App.StartCapture] charServerInfoList: %+v", charServerInfoList)
+
+				if charServerInfoList != nil {
+					// stop the packet capture service
+					packetCaptureService.StopCapture()
+					// return the charServerInfoList
+					return charServerInfoList
+				}
 			}
 
-			charServerInfoList := ragnarok.ParsePayloadToCharacterServerInfo(payload, pattern)
-
-			runtime.LogInfof(a.ctx, "[App.StartCapture] charServerInfoList: %+v", charServerInfoList)
-
-			// stop the packet capture service
-			packetCaptureService.StopCapture()
-			// return the charServerInfoList
-			return charServerInfoList
 		case <-ctx.Done():
 			// handle context done signal
 			return nil

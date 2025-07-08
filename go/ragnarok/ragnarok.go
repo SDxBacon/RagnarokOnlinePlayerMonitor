@@ -100,7 +100,6 @@ func decodeServerData(data []byte) *CharacterServerInfo {
 //   - []byte: Combined segments if the data could be evenly split based on pattern occurrences
 //   - nil: If the data length is not evenly divisible by the number of pattern occurrences
 func ParsePayloadToCharacterServerInfo(data []byte, pattern []byte) []CharacterServerInfo {
-	// pattern := []byte{0xc0, 0xa8}
 
 	// find all occurrences of the pattern in the data
 	occurrences := findAllPatterns(data, pattern)
@@ -109,13 +108,19 @@ func ParsePayloadToCharacterServerInfo(data []byte, pattern []byte) []CharacterS
 	fmt.Printf("find %d occurrences of the pattern\n", len(occurrences))
 	fmt.Println("occurrences:", occurrences)
 
-	if len(data)%len(occurrences) != 0 {
-		// TODO: is it possible that the server have different size?
+	// if no occurrences found
+	if len(occurrences) == 0 {
+		return nil
+	}
+
+	// assuming the character server list is evenly distributed across the data, but may not start at the beginning.
+	var dataCountFromOccurrence = len(data[occurrences[0]:]) // the number of bytes from the first occurrence to the end of the data
+	if dataCountFromOccurrence <= 0 || len(data)%dataCountFromOccurrence != 0 {
 		return nil
 	}
 
 	totalServers := len(occurrences)
-	bytesPerServer := len(data) / totalServers
+	bytesPerServer := len(data[occurrences[0]:]) / totalServers
 
 	serversBytes := make([]CharacterServerInfo, 0, totalServers)
 
