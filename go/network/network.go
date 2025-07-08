@@ -28,6 +28,7 @@ func NewPacketCaptureService(ip string, port int) *PacketCaptureService {
 		port:                   port,
 		ctx:                    ctx,
 		cancel:                 cancel,
+		connections:            make(map[ConnectionKey]*Connection),
 		connCloseNotifyChannel: make(chan *Connection),
 	}
 }
