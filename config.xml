@@ -8,12 +8,14 @@
         <IP>219.84.200.54</IP>
         <port>6900</port>
         <pattern>0xc0a8</pattern>
+        <isNumberResponse>true</isNumberResponse>
       </server>
       <server>
         <name>Taiwan - Zero</name>
         <IP>35.229.252.108</IP>
         <port>6900</port>
         <pattern>0x0a8c</pattern>
+        <isNumberResponse>false</isNumberResponse>
       </server>
   </servers>
 </configuration>
