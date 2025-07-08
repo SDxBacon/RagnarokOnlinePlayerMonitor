@@ -172,5 +172,6 @@ func (pcs *PacketCaptureService) handlePacket(packet gopacket.Packet) {
 	// if the packet is a FIN or RST meaning the connection is about to close
 	if tcp.FIN || tcp.RST {
 		// TODO:
+		pcs.connCloseNotifyChannel <- existingConn
 	}
 }
