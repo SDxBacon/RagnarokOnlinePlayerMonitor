@@ -15,19 +15,21 @@ type Configuration struct {
 	} `xml:"app"`
 	Servers struct {
 		Server []struct {
-			Name    string `xml:"name"`
-			IP      string `xml:"IP"`
-			Port    int    `xml:"port"`
-			Pattern string `xml:"pattern"`
+			Name             string `xml:"name"`
+			IP               string `xml:"IP"`
+			Port             int    `xml:"port"`
+			Pattern          string `xml:"pattern"`
+			IsNumberResponse bool   `xml:"isNumberResponse"`
 		} `xml:"server"`
 	} `xml:"servers"`
 }
 
 type LoginServer struct {
-	Name    string
-	IP      string
-	Port    int
-	Pattern []byte
+	Name             string
+	IP               string
+	Port             int
+	Pattern          []byte
+	IsNumberResponse bool
 }
 
 func hexStringToBytes(hexStr string) ([]byte, error) {
@@ -80,10 +82,11 @@ func LoadCustomServersFromXML(path string) ([]LoginServer, error) {
 			return nil, fmt.Errorf("failed to convert pattern from hex string to bytes: %v", err)
 		}
 		loginServers[i] = LoginServer{
-			Name:    server.Name,
-			IP:      server.IP,
-			Port:    server.Port,
-			Pattern: pattern,
+			Name:             server.Name,
+			IP:               server.IP,
+			Port:             server.Port,
+			Pattern:          pattern,
+			IsNumberResponse: server.IsNumberResponse,
 		}
 	}
 

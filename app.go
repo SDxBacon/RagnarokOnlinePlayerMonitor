@@ -27,12 +27,15 @@ type AppServices struct {
 	github *github.GitHubService
 }
 
+// expose the LoginServer type from config package to js level
 type LoginServer = config.LoginServer
 
+// expose the CharacterServerInfo type from ragnarok package to js level
 type CharacterServerInfo = ragnarok.CharacterServerInfo
 
 var loginServers []LoginServer = []LoginServer{
-	{Name: "Taiwan", IP: "219.84.200.54", Port: 6900, Pattern: []byte{0xc0, 0xa8}},
+	{Name: "Taiwan", IP: "219.84.200.54", Port: 6900, Pattern: []byte{0xc0, 0xa8}, IsNumberResponse: true},
+	{Name: "Taiwan - Zero", IP: "35.229.252.108", Port: 6900, Pattern: []byte{0xc0, 0xa8}, IsNumberResponse: false},
 	// {Name: "Korea", IP: "112.175.128.137", Port: 6900, Pattern: []byte{0xc0, 0xa8}},
 }
 

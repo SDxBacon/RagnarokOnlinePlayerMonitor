@@ -5,6 +5,7 @@ export namespace config {
 	    IP: string;
 	    Port: number;
 	    Pattern: number[];
+	    IsNumberResponse: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new LoginServer(source);
@@ -16,6 +17,7 @@ export namespace config {
 	        this.IP = source["IP"];
 	        this.Port = source["Port"];
 	        this.Pattern = source["Pattern"];
+	        this.IsNumberResponse = source["IsNumberResponse"];
 	    }
 	}
 
